@@ -2,7 +2,7 @@
 
 <div align="center">
   <br />
-  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" alt="Lumen Logo" width="100" height="100">
+  <img src="icon.png" alt="Lumen Logo" width="100" height="100">
   
   <h3 align="center">Scan. Digitise. Organize.</h3>
 
