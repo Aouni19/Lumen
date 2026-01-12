@@ -1,18 +1,20 @@
 package com.example.Lumen.screens
 
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.text.format.DateUtils
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Functions
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Smartphone
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,7 +25,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,6 +39,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.Lumen.data.HomeViewModel
 import com.example.Lumen.data.UserPreferences
 import com.example.Lumen.ui.theme.AppTheme
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -57,6 +63,44 @@ fun ProfileScreen(
 
     val manufacturer = Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
     val deviceInfo = "$manufacturer ${Build.MODEL} • Android ${Build.VERSION.RELEASE}"
+
+    // --- PROFILE IMAGE LOGIC ---
+    val profileFile = remember { File(context.filesDir, "user_profile_image.jpg") }
+    var profileBitmap by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+
+    // 1. Load image if exists
+    LaunchedEffect(Unit) {
+        if (profileFile.exists()) {
+            val bitmap = BitmapFactory.decodeFile(profileFile.absolutePath)
+            if (bitmap != null) {
+                profileBitmap = bitmap.asImageBitmap()
+            }
+        }
+    }
+
+    // 2. Image Picker Launcher
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            // Save selected image to internal storage
+            try {
+                val inputStream = context.contentResolver.openInputStream(it)
+                val outputStream = FileOutputStream(profileFile)
+                inputStream?.copyTo(outputStream)
+                inputStream?.close()
+                outputStream.close()
+
+                // Reload Bitmap
+                val bitmap = BitmapFactory.decodeFile(profileFile.absolutePath)
+                if (bitmap != null) {
+                    profileBitmap = bitmap.asImageBitmap()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     val journeyText = remember(journeyStartTimestamp) {
         if (journeyStartTimestamp == 0L) "Not started yet"
@@ -91,19 +135,37 @@ fun ProfileScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // --- EDITABLE PROFILE PICTURE ---
             Box(
                 modifier = Modifier
                     .size(120.dp)
                     .clip(BlobShape())
-                    .background(AppTheme.colors.profileCard),
+                    .background(AppTheme.colors.profileCard)
+                    .clickable { launcher.launch("image/*") }, // Click to Open Gallery
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(70.dp),
-                    tint = AppTheme.colors.fontLogo.copy(alpha = 0.8f)
-                )
+                if (profileBitmap != null) {
+                    Image(
+                        bitmap = profileBitmap!!,
+                        contentDescription = "Profile Picture",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(70.dp),
+                        tint = AppTheme.colors.fontLogo.copy(alpha = 0.8f)
+                    )
+                }
+
+                // Optional: Small "Edit" hint overlay
+                if (profileBitmap == null) {
+                    Box(modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp)) {
+                        Icon(Icons.Default.AddAPhoto, contentDescription = null, tint = AppTheme.colors.fontLogo, modifier = Modifier.size(16.dp))
+                    }
+                }
             }
 
             Column(
@@ -185,6 +247,7 @@ fun ProfileScreen(
     }
 }
 
+// ... (Rest of your helper composables remain exactly the same below) ...
 @Composable
 fun StatGridItem(
     icon: ImageVector,

@@ -143,7 +143,7 @@ fun AboutUsButtonCard( // Renamed from AdvanceButtonCard
         modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(50),
         // Use the red advanceBtn color
-        colors = CardDefaults.cardColors(containerColor = AppTheme.colors.advanceBtn)
+        colors = CardDefaults.cardColors(containerColor = AppTheme.colors.floating)
     ) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(

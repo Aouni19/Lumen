@@ -6,26 +6,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import com.example.Lumen.components.FilesDestinationDialog
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import com.example.Lumen.components.AboutUsDialog
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.Lumen.components.AboutUsButtonCard
-import com.example.Lumen.components.CompressionDialog
-import com.example.Lumen.components.SettingCard
-import com.example.Lumen.components.TextSettingCard
-import com.example.Lumen.components.StorageCapsuleCard
-import com.example.Lumen.components.ThemeIcon
-import com.example.Lumen.components.ThemeSelectionDialog
+import com.example.Lumen.components.*
 import com.example.Lumen.ui.state.ThemeManager
 import com.example.Lumen.ui.theme.AppTheme
 import java.text.DecimalFormat
@@ -66,7 +56,7 @@ fun SettingsScreen() {
     var showDestinationDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
 
-    // 3. State for Compression Level (Loads from persistent storage immediately)
+    // 3. State for Settings
     var compressionLevel by remember {
         mutableStateOf(prefs.getString("compression_level", "Medium") ?: "Medium")
     }
@@ -85,7 +75,6 @@ fun SettingsScreen() {
             onDismiss = { showCompressionDialog = false },
             onApply = { newLevel ->
                 compressionLevel = newLevel
-                // Save to phone storage so it stays after restart
                 prefs.edit().putString("compression_level", newLevel).apply()
                 showCompressionDialog = false
             }
@@ -100,7 +89,6 @@ fun SettingsScreen() {
                 destinationType = newDest
                 prefs.edit().putString("destination_type", newDest).apply()
                 showDestinationDialog = false
-                // Logic for "Custom" will go here later
             }
         )
     }
@@ -126,29 +114,7 @@ fun SettingsScreen() {
             modifier = Modifier.padding(top = 24.dp, bottom = 20.dp)
         )
 
-        // Buy Premium Banner
-        Card(
-            modifier = Modifier.fillMaxWidth().height(100.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = AppTheme.colors.storageName)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text("Buy Premium", fontWeight = FontWeight.Bold, color = AppTheme.colors.fontLogo, fontSize = 16.sp)
-                Text(
-                    "Improved Customization\nNo Ads\nBeta Access\nOne Time Purchase",
-                    textAlign = TextAlign.Center,
-                    color = AppTheme.colors.fontLogo.copy(alpha = 0.8f),
-                    fontSize = 10.sp,
-                    lineHeight = 12.sp
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
+        // --- REMOVED PREMIUM CARD HERE ---
 
         // Row 1
         Row(
@@ -165,7 +131,7 @@ fun SettingsScreen() {
             )
             TextSettingCard(
                 title = "Files Destination",
-                text = destinationType.replace("Folder", ""), // "Custom Folder" -> "Custom" for fit
+                text = destinationType.replace("Folder", ""),
                 modifier = Modifier
                     .weight(1f)
                     .height(gridItemHeight)
@@ -217,10 +183,16 @@ fun SettingsScreen() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Spacer(modifier = Modifier.weight(1f).height(gridItemHeight))
+            // Keep the spacer the same height if you want the grid to look consistent,
+            // OR change it to match the new button height.
+            Spacer(modifier = Modifier.weight(1f).height(110.dp))
+
             AboutUsButtonCard(
                 onClick = { showAboutDialog = true },
-                modifier = Modifier.weight(1f).height(gridItemHeight)
+                // CHANGE THIS VALUE (e.g., 80.dp, 120.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .height(80.dp)
             )
         }
         Spacer(modifier = Modifier.height(100.dp))
